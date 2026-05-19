@@ -1,6 +1,4 @@
-================================================================================
-  STEM Games 2026 - Rekonstrukcija oblaka tocaka (Point Cloud)
-================================================================================
+STEM Games 2026 - Rekonstrukcija oblaka tocaka (Point Cloud)
 
 SADRZAJ
   1. Opis problema
@@ -12,9 +10,7 @@ SADRZAJ
   7. Pokretanje
   8. Izlazne datoteke
 
-================================================================================
 1. OPIS PROBLEMA
-================================================================================
 
 Zadatak je bio rekonstruirati 3D pozicije piksela (oblak tocaka, eng. point
 cloud) iz cetiri skupa fotografija istih scena snimljenih iz razlicitih kutova
@@ -35,9 +31,7 @@ tekstualnoj datoteci, sto uvelike olaksava rekonstrukciju.
 Za skupove Statue i Fountain dane su nam samo unutarnje karakteristike kamere
 (matrica K), a polozaje kamera moramo sami procijeniti.
 
-================================================================================
 2. PRISTUP RJESAVANJU
-================================================================================
 
 --- Slucaj 1: Poznate koordinate kamera (Box i Entrance) ---
 
@@ -78,9 +72,7 @@ Metoda:
   6. Na kraju se provodi bundle adjustment (globalna optimizacija) koji
      istovremeno minimizira pogre??ke projekcije za sve kamere i sve 3D tocke.
 
-================================================================================
 3. SKRIPTE I NJIHOVA ULOGA
-================================================================================
 
 --- reconstruct_known_cameras.py ---
 Rekonstrukcija za skupove Box i Entrance s poznatim kamerama.
@@ -99,7 +91,7 @@ Rekonstrukcija za skupove Box i Entrance s poznatim kamerama.
       Trazi najblizu tocku izmedju njih.
 
   - remove_outliers(points)
-      Statisticki filtar gru??nih pogre??aka (MAD metoda).
+      Statisticki filtar grupnih pogresaka (MAD metoda).
 
   - reconstruct(...)
       Glavni tok: ucitavanje, ekstrakcija znacajki,
@@ -137,9 +129,7 @@ u dvije vizualno razlicite hemisfere (prednja strana - zid, straznja - pustinja)
 Konsolidira najbolje rezultate iz svih metoda i generira kombinirani
 vizualni pregled.
 
-================================================================================
 4. MATEMATICKA POZADINA
-================================================================================
 
 --- Zraka kamere (Ray equation) ---
 
@@ -197,9 +187,8 @@ reprojekcije:
 gdje je x_ij opazena 2D tocka, a projekcija(...) je projekcija 3D tocke X_j
 kroz kameru i.
 
-================================================================================
 5. REZULTATI
-================================================================================
+
 
   Skup       | Broj tocaka | Metoda                          | Pogreska repr.
   -----------|-------------|----------------------------------|----------------
@@ -214,9 +203,7 @@ kao pozicije kamera u ulaznoj datoteci).
 Za Statue i Fountain koordinate su u RELATIVNOM KOORDINATNOM SUSTAVU
 (COLMAP normalizira skalu jer prave koordinate kamera nisu poznate).
 
-================================================================================
 6. OGRANICENJA I OPAZANJA
-================================================================================
 
 Box:
   Scena je renderirana igrana okolina (drvena kutija na pjescanoj podlozi).
@@ -246,9 +233,7 @@ Fountain:
   tekstura opeke i ukrasa daje izvrsne rezultate - COLMAP registrira svih
   11 slika i producira ~25 000 tocaka visoke tocnosti.
 
-================================================================================
 7. POKRETANJE
-================================================================================
 
 Preduvjeti - instalacija potrebnih paketa:
   pip install -r requirements.txt
@@ -272,9 +257,7 @@ Napomena o TestImages mapi:
     Windows : set STEM_IMAGES_DIR=C:\putanja\do\TestImages
     Mac/Linux: export STEM_IMAGES_DIR=/putanja/do/TestImages
 
-================================================================================
 8. IZLAZNE DATOTEKE
-================================================================================
 
 Primarne datoteke za predaju (mapa: final_output/)
   box_final_points.txt      - 3D tocke za Box
@@ -305,5 +288,3 @@ Vizualizacija PLY datoteka:
             import open3d as o3d
             pcd = o3d.io.read_point_cloud("box_final_points.ply")
             o3d.visualization.draw_geometries([pcd])
-
-================================================================================
