@@ -9,8 +9,9 @@ import matplotlib; matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D  # noqa
 
-OUT = "/Users/kmatic/IdeaProjects/STEMgames 2026/output"
-FINAL = "/Users/kmatic/IdeaProjects/STEMgames 2026/final_output"
+_PROJECT = os.path.dirname(os.path.abspath(__file__))
+OUT = os.path.join(_PROJECT, "output")
+FINAL = os.path.join(_PROJECT, "final_output")
 os.makedirs(FINAL, exist_ok=True)
 
 # Best results for each dataset

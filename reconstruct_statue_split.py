@@ -19,8 +19,10 @@ import os
 import re
 
 
-BASE   = "/Users/kmatic/Downloads/StemGames2026_ProjectTask/TestImages/Statue"
-OUT    = "/Users/kmatic/IdeaProjects/STEMgames 2026/output"
+_PROJECT = os.path.dirname(os.path.abspath(__file__))
+_IMAGES  = os.environ.get("STEM_IMAGES_DIR", os.path.join(_PROJECT, "TestImages"))
+BASE     = os.path.join(_IMAGES, "Statue")
+OUT      = os.path.join(_PROJECT, "output")
 
 K_FILE = os.path.join(BASE, "K.txt")
 

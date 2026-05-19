@@ -267,8 +267,10 @@ def save_matplotlib(points, out_path, title="Point Cloud"):
 # ─── Entry point ──────────────────────────────────────────────────────────────
 
 if __name__ == '__main__':
-    base = "/Users/kmatic/Downloads/StemGames2026_ProjectTask/TestImages"
-    out_base = "/Users/kmatic/IdeaProjects/STEMgames 2026/output"
+    _project = os.path.dirname(os.path.abspath(__file__))
+    base = os.environ.get("STEM_IMAGES_DIR",
+                          os.path.join(_project, "TestImages"))
+    out_base = os.path.join(_project, "output")
     os.makedirs(out_base, exist_ok=True)
 
     datasets = [

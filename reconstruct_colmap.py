@@ -14,8 +14,9 @@ import shutil
 from pathlib import Path
 
 
-OUT = Path("/Users/kmatic/IdeaProjects/STEMgames 2026/output")
-BASE = Path("/Users/kmatic/Downloads/StemGames2026_ProjectTask/TestImages")
+_PROJECT = Path(__file__).parent
+OUT = _PROJECT / "output"
+BASE = Path(os.environ.get("STEM_IMAGES_DIR", _PROJECT / "TestImages"))
 OUT.mkdir(exist_ok=True)
 
 
