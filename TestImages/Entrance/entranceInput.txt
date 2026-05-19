@@ -1,0 +1,74 @@
+(camera field of view is always 90 degrees)
+
+1)
+CamPosition:	X=-1418.000000 Y=560.000000 Z=339.000000
+CamForward:	X=0.830 Y=-0.518 Z=-0.208
+CamRight:	X=0.530 Y=0.848 Z=-0.000
+CamUp:		X=0.176 Y=-0.110 Z=0.978
+
+2)
+CamPosition:	X=-1147.000000 Y=824.000000 Z=339.000000
+CamForward:	X=0.692 Y=-0.692 Z=-0.208
+CamRight:	X=0.707 Y=0.707 Z=-0.000
+CamUp:		X=0.147 Y=-0.147 Z=0.978
+
+3)
+
+CamPosition:	X=-1049.000000 Y=881.000000 Z=339.000000
+CamForward:	X=0.602 Y=-0.771 Z=-0.208
+CamRight:	X=0.788 Y=0.616 Z=-0.000
+CamUp:		X=0.128 Y=-0.164 Z=0.978
+
+4)
+CamPosition:	X=-901.000000 Y=971.000000 Z=339.000000
+CamForward:	X=0.459 Y=-0.864 Z=-0.208
+CamRight:	X=0.883 Y=0.469 Z=-0.000
+CamUp:		X=0.098 Y=-0.184 Z=0.978
+
+5)
+CamPosition:	X=-545.000000 Y=948.000000 Z=339.000000
+CamForward:	X=0.351 Y=-0.913 Z=-0.208
+CamRight:	X=0.934 Y=0.358 Z=-0.000
+CamUp:		X=0.075 Y=-0.194 Z=0.978
+
+6)
+CamPosition:	X=-373.000000 Y=967.000000 Z=339.000000
+CamForward:	X=0.187 Y=-0.960 Z=-0.208
+CamRight:	X=0.982 Y=0.191 Z=-0.000
+CamUp:		X=0.040 Y=-0.204 Z=0.978
+
+7)
+CamPosition:	X=8.000000 Y=1003.000000 Z=339.000000
+CamForward:	X=0.034 Y=-0.978 Z=-0.208
+CamRight:	X=0.999 Y=0.035 Z=-0.000
+CamUp:		X=0.007 Y=-0.208 Z=0.978
+
+8)
+CamPosition:	X=304.000000 Y=926.000000 Z=339.000000
+CamForward:	X=-0.153 Y=-0.966 Z=-0.208
+CamRight:	X=0.988 Y=-0.156 Z=-0.000
+CamUp:		X=-0.033 Y=-0.205 Z=0.978
+
+9)
+CamPosition:	X=635.000000 Y=934.000000 Z=339.000000
+CamForward:	X=-0.382 Y=-0.900 Z=-0.208
+CamRight:	X=0.921 Y=-0.391 Z=-0.000
+CamUp:		X=-0.081 Y=-0.191 Z=0.978
+
+10)
+CamPosition:	X=1100.000000 Y=793.000000 Z=341.000000
+CamForward:	X=-0.575 Y=-0.791 Z=-0.208
+CamRight:	X=0.809 Y=-0.588 Z=-0.000
+CamUp:		X=-0.122 Y=-0.168 Z=0.978
+
+11)
+CamPosition:	X=1306.000000 Y=688.000000 Z=341.000000
+CamForward:	X=-0.738 Y=-0.642 Z=-0.208
+CamRight:	X=0.656 Y=-0.755 Z=-0.000
+CamUp:		X=-0.157 Y=-0.136 Z=0.978
+
+12)
+CamPosition:	X=1567.000000 Y=406.000000 Z=341.000000
+CamForward:	X=-0.887 Y=-0.413 Z=-0.208
+CamRight:	X=0.423 Y=-0.906 Z=-0.000
+CamUp:		X=-0.188 Y=-0.088 Z=0.978
