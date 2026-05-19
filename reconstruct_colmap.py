@@ -19,6 +19,14 @@ OUT = _PROJECT / "output"
 BASE = Path(os.environ.get("STEM_IMAGES_DIR", _PROJECT / "TestImages"))
 OUT.mkdir(exist_ok=True)
 
+if not BASE.is_dir():
+    print(f"ERROR: TestImages folder not found at:\n  {BASE}\n")
+    print("Place the TestImages folder inside the project directory, or set")
+    print("the STEM_IMAGES_DIR environment variable to its location.")
+    print("\nExample (Windows):  set STEM_IMAGES_DIR=C:\\path\\to\\TestImages")
+    print("Example (Mac/Linux): export STEM_IMAGES_DIR=/path/to/TestImages")
+    raise SystemExit(1)
+
 
 # ─── Helpers ──────────────────────────────────────────────────────────────────
 

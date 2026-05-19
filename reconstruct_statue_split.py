@@ -24,6 +24,14 @@ _IMAGES  = os.environ.get("STEM_IMAGES_DIR", os.path.join(_PROJECT, "TestImages"
 BASE     = os.path.join(_IMAGES, "Statue")
 OUT      = os.path.join(_PROJECT, "output")
 
+if not os.path.isdir(BASE):
+    print(f"ERROR: Statue images folder not found at:\n  {BASE}\n")
+    print("Place the TestImages folder inside the project directory, or set")
+    print("the STEM_IMAGES_DIR environment variable to its location.")
+    print("\nExample (Windows):  set STEM_IMAGES_DIR=C:\\path\\to\\TestImages")
+    print("Example (Mac/Linux): export STEM_IMAGES_DIR=/path/to/TestImages")
+    raise SystemExit(1)
+
 K_FILE = os.path.join(BASE, "K.txt")
 
 
