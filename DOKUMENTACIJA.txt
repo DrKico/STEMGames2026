@@ -1,0 +1,309 @@
+================================================================================
+  STEM Games 2026 - Rekonstrukcija oblaka tocaka (Point Cloud)
+================================================================================
+
+SADRZAJ
+  1. Opis problema
+  2. Pristup rjesavanju
+  3. Skripte i njihova uloga
+  4. Matematicka pozadina
+  5. Rezultati
+  6. Ogranicenja i opazanja
+  7. Pokretanje
+  8. Izlazne datoteke
+
+================================================================================
+1. OPIS PROBLEMA
+================================================================================
+
+Zadatak je bio rekonstruirati 3D pozicije piksela (oblak tocaka, eng. point
+cloud) iz cetiri skupa fotografija istih scena snimljenih iz razlicitih kutova
+i pozicija.
+
+Skupovi slika:
+
+  Skup       | Koordinate kamere | Rezolucija
+  -----------|-------------------|------------
+  Box        | Poznate           | 1920 x 1080
+  Entrance   | Poznate           | 1920 x 1080
+  Statue     | Nepoznate         | 1920 x 1080
+  Fountain   | Nepoznate         | 3072 x 2048
+
+Za skupove Box i Entrance dane su nam pozicije i orijentacije kamera u
+tekstualnoj datoteci, sto uvelike olaksava rekonstrukciju.
+
+Za skupove Statue i Fountain dane su nam samo unutarnje karakteristike kamere
+(matrica K), a polozaje kamera moramo sami procijeniti.
+
+================================================================================
+2. PRISTUP RJESAVANJU
+================================================================================
+
+--- Slucaj 1: Poznate koordinate kamera (Box i Entrance) ---
+
+Kada su nam poznate pozicija i orijentacija kamere, svaki piksel na slici
+mozemo opisati kao zraku u 3D prostoru (eng. ray). Ta zraka polazi od polozaja
+kamere i prolazi kroz trazeni piksel.
+
+Metoda:
+  1. Za svaku sliku izvucemo karakteristicne tocke pomocu algoritma SIFT
+     (Scale-Invariant Feature Transform).
+  2. Za svaki par slika pronasemo odgovarajuce parove tocaka (feature matching)
+     koristeci Lowe-ov omjer (ratio test, prag 0.80).
+  3. Za svaki par odgovarajucih tocaka iz dvaju kamera, konstruiramo dvije zrake
+     u 3D prostoru koristeci funkciju GetLineEquation zadanu u opisu zadatka.
+  4. Pronasemo najblizu tocku izmedju dviju zraka (triangulacija). Srediste tog
+     najkraceg segmenta je nasa procjena 3D pozicije tocke.
+  5. Odbacujemo tocke kod kojih su zrake previse daleko jedna od druge (losi
+     parovi) ili koje su predaleko od kamera.
+  6. Statisticki uklanjamo grube pogre??ke (outliers) koristeci medijan i MAD
+     (Median Absolute Deviation).
+
+--- Slucaj 2: Nepoznate koordinate kamera (Statue i Fountain) ---
+
+Kada koordinate kamera nisu poznate, koristimo tehniku Structure from Motion
+(SfM) uz pomoc biblioteke pycolmap (Python sucelje za COLMAP).
+
+Metoda:
+  1. COLMAP sam pronalazi karakteristicne tocke i opisnike na svim slikama
+     (SIFT, do 20 000 tocaka po slici).
+  2. Sve parove slika usporedujemo iscrpno (exhaustive matching) kako bismo
+     pronasli odgovarajuce tocke.
+  3. Iz odgovarajucih tocaka izracunava se esencijalna matrica (Essential
+     Matrix) koja opisuje geometrijski odnos izmedju kamera.
+  4. Iz esencijalne matrice dobivamo relativnu rotaciju i translaciju kamere
+     (recoverPose).
+  5. COLMAP provodi inkrementalni SfM - postupno dodaje slike jednu po jednu,
+     za svaku procjenjujuci polozaj kamere, te triangulira 3D tocke.
+  6. Na kraju se provodi bundle adjustment (globalna optimizacija) koji
+     istovremeno minimizira pogre??ke projekcije za sve kamere i sve 3D tocke.
+
+================================================================================
+3. SKRIPTE I NJIHOVA ULOGA
+================================================================================
+
+--- reconstruct_known_cameras.py ---
+Rekonstrukcija za skupove Box i Entrance s poznatim kamerama.
+
+  Kljucne funkcije:
+  - parse_camera_file(filepath)
+      Parsira tekstualnu datoteku s podacima kamera
+      (pozicija, Forward/Right/Up vektori)
+
+  - get_ray_direction(pixel_row, pixel_col, ...)
+      Implementacija GetLineEquation iz zadatka.
+      Racuna smjer zrake za dani piksel.
+
+  - triangulate_rays(o1, d1, o2, d2)
+      Triangulacija dviju zraka.
+      Trazi najblizu tocku izmedju njih.
+
+  - remove_outliers(points)
+      Statisticki filtar gru??nih pogre??aka (MAD metoda).
+
+  - reconstruct(...)
+      Glavni tok: ucitavanje, ekstrakcija znacajki,
+      uparivanje, triangulacija, filtriranje.
+
+--- reconstruct_unknown_cameras.py ---
+Python-bazirana rekonstrukcija (bez COLMAP-a) za Statue i Fountain.
+Korisna za razumijevanje algoritma.
+
+  Kljucne funkcije:
+  - parse_K(k_file)
+      Parsira matricu K iz datoteke K.txt
+
+  - incremental_sfm(images, K, ...)
+      Dvofazni SfM:
+        Faza 1 - izgradnja lanca poza kamera iz uzastopnih parova
+        Faza 2 - triangulacija unutar kliznog prozora
+
+--- reconstruct_colmap.py ---
+Rekonstrukcija visoke kvalitete koristeci pycolmap za sva cetiri skupa.
+
+  Kljucne funkcije:
+  - reconstruct_unknown_cam(...)
+      Pokretanje punog COLMAP SfM cjevovoda:
+      ekstrakcija -> uparivanje -> inkrementalno mapiranje s bundle adjustment
+
+  - extract_colmap_points(reconstruction)
+      Izvlacenje XYZ+RGB iz COLMAP Reconstruction objekta.
+
+--- reconstruct_statue_split.py ---
+Specijalizirana skripta za Statue koja prepoznaje da su slike podijeljene
+u dvije vizualno razlicite hemisfere (prednja strana - zid, straznja - pustinja).
+
+--- final_summary.py ---
+Konsolidira najbolje rezultate iz svih metoda i generira kombinirani
+vizualni pregled.
+
+================================================================================
+4. MATEMATICKA POZADINA
+================================================================================
+
+--- Zraka kamere (Ray equation) ---
+
+Za kameru s poznatim parametrima, smjer zrake za piksel (row, col):
+
+  coeffRight = 2 * (col - ResX/2 + 0.5) / ResX
+  coeffUp    = -2 * (row - ResY/2 + 0.5) / ResY * (ResY / ResX)
+
+  direction = Forward + coeffRight * Right + coeffUp * Up
+
+Ovo pretpostavlja vidno polje (FoV) od 90 stupnjeva i bez distorzije objektiva.
+
+--- Triangulacija dviju zraka ---
+
+Dvije zrake opisane su kao:
+  P1(t) = O1 + t * d1
+  P2(s) = O2 + s * d2
+
+Najblize tocke na dvjema zrakama dobivamo rjesavanjem sustava:
+  d1d2  = dot(d1, d2)
+  denom = 1 - d1d2^2
+  t     = (dot(O2-O1, d1) - d1d2 * dot(O2-O1, d2)) / denom
+  s     = (d1d2 * dot(O2-O1, d1) - dot(O2-O1, d2)) / denom
+
+Konacna 3D tocka je srediste izmedju P1(t) i P2(s).
+
+--- Matrica kamere (Camera Matrix K) ---
+
+  K = [ fx   0   cx ]
+      [  0  fy   cy ]
+      [  0   0    1 ]
+
+Za 90 stupnjeva horizontalni FoV i rezoluciju 1920x1080:
+  fx = fy = 960   (zarišna duljina u pikselima)
+  cx = 960        (glavna tocka - srediste slike po x osi)
+  cy = 540        (glavna tocka - srediste slike po y osi)
+
+Za Fountain (iz K.txt):
+  fx = 2759.48,  fy = 2764.16,  cx = 1520.69,  cy = 1006.81
+
+--- Esencijalna matrica (Essential Matrix) ---
+
+Veza izmedju odgovarajucih tocaka u dvjema kalibriranim kamerama:
+  x2^T * E * x1 = 0
+
+Iz esencijalne matrice dobivamo relativnu rotaciju R i translaciju t kamere.
+Translacija je poznata samo do skaliranja (jedinicna norma).
+
+--- Bundle Adjustment ---
+
+Globalna nelinearna optimizacija koja minimizira sumu kvadrata pogre??aka
+reprojekcije:
+  min [ suma_i suma_j || x_ij - projekcija(R_i, t_i, X_j) ||^2 ]
+
+gdje je x_ij opazena 2D tocka, a projekcija(...) je projekcija 3D tocke X_j
+kroz kameru i.
+
+================================================================================
+5. REZULTATI
+================================================================================
+
+  Skup       | Broj tocaka | Metoda                          | Pogreska repr.
+  -----------|-------------|----------------------------------|----------------
+  Box        |    ~2 800   | Ray triangulacija (Python)       | -
+  Entrance   |   ~12 000   | Ray triangulacija (Python)       | -
+  Statue     |    ~2 500   | COLMAP SfM + Bundle Adjustment   | 0.21 px
+  Fountain   |   ~25 000   | COLMAP SfM + Bundle Adjustment   | 0.32 px
+
+Za Box i Entrance koordinate su u SVJETSKOM KOORDINATNOM SUSTAVU (iste jedinice
+kao pozicije kamera u ulaznoj datoteci).
+
+Za Statue i Fountain koordinate su u RELATIVNOM KOORDINATNOM SUSTAVU
+(COLMAP normalizira skalu jer prave koordinate kamera nisu poznate).
+
+================================================================================
+6. OGRANICENJA I OPAZANJA
+================================================================================
+
+Box:
+  Scena je renderirana igrana okolina (drvena kutija na pjescanoj podlozi).
+  Povrsina kutije ima relativno malo teksture, sto SIFT algoritmu otezava
+  pronalazak karakteristicnih tocaka. Rekonstruirani oblak sadrzi tocke i
+  s kutije i s pozadinskog zida od opeke.
+
+Entrance:
+  Bogata scena s mnogo geometrijskih detalja (kipovi, zid, automobil, luk).
+  Daje najbolje rezultate od skupova s poznatim kamerama (~12 000 tocaka).
+
+Statue:
+  Kip je fotografiran u punom krugu od 360 stupnjeva.
+
+  Slike 1-7 i 18  : prednja strana kipa (pozadina: zid od opeke s markerima)
+  Slike 8-17      : straznja strana kipa (pozadina: pustinjski krajolik)
+
+  Ovaj nagli vizualni prijelaz otezava uzastopno uparivanje slika - slike 7->8
+  i 17->18 dijele malo zajednickih karakteristika. COLMAP to rjesava zatvaranjem
+  petlje (loop closure): prepoznaje da slike 1 i 18 prikazuju gotovo identican
+  pogled i koristi tu informaciju za globalno poravnanje.
+
+  Uz COLMAP registrirano je 16 od 18 slika.
+
+Fountain:
+  Realna fotografija (ne renderirana scena) ornamentalne fontane. Bogata
+  tekstura opeke i ukrasa daje izvrsne rezultate - COLMAP registrira svih
+  11 slika i producira ~25 000 tocaka visoke tocnosti.
+
+================================================================================
+7. POKRETANJE
+================================================================================
+
+Preduvjeti - instalacija potrebnih paketa:
+  pip install -r requirements.txt
+
+Pokretanje skripti:
+
+  # Box i Entrance (poznate kamere, svjetske koordinate)
+  python reconstruct_known_cameras.py
+
+  # Statue i Fountain (COLMAP, visoka kvaliteta)
+  python reconstruct_colmap.py
+
+  # Konsolidacija rezultata i vizualizacija
+  python final_summary.py
+
+Napomena o TestImages mapi:
+  TestImages mapa je ukljucena u repozitorij. Nakon kloniranja repozitorija
+  skripte ce automatski pronaci slike i pokrenuti se bez ikakve konfiguracije.
+
+  Ako zelite koristiti slike s drugog mjesta:
+    Windows : set STEM_IMAGES_DIR=C:\putanja\do\TestImages
+    Mac/Linux: export STEM_IMAGES_DIR=/putanja/do/TestImages
+
+================================================================================
+8. IZLAZNE DATOTEKE
+================================================================================
+
+Primarne datoteke za predaju (mapa: final_output/)
+  box_final_points.txt      - 3D tocke za Box
+  entrance_final_points.txt - 3D tocke za Entrance
+  statue_final_points.txt   - 3D tocke za Statue
+  fountain_final_points.txt - 3D tocke za Fountain
+  box_final_points.ply      - PLY format za prikaz u MeshLab/CloudCompare
+  entrance_final_points.ply - PLY format
+  statue_final_points.ply   - PLY format
+  fountain_final_points.ply - PLY format
+  all_reconstructions.png   - Kombinirani vizualni pregled sva 4 oblaka
+
+Format tekstualne datoteke (.txt):
+  Zaglavlje: X Y Z R G B
+  Primjer:
+    26.8944 -692.1920 44.6369 131 77 47
+    99.3281 -712.5330 113.1627 195 141 77
+    ...
+
+  X, Y, Z - koordinate u 3D prostoru (decimalni broj)
+  R, G, B - boja tocke preuzeta iz originalne slike (0-255)
+
+Vizualizacija PLY datoteka:
+  PLY datoteke mozete otvoriti u:
+  - MeshLab      (besplatno, preporuceno) - https://www.meshlab.net/
+  - CloudCompare (besplatno)              - https://www.cloudcompare.org/
+  - Python: pip install open3d
+            import open3d as o3d
+            pcd = o3d.io.read_point_cloud("box_final_points.ply")
+            o3d.visualization.draw_geometries([pcd])
+
+================================================================================
